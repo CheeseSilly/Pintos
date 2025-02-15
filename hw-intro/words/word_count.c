@@ -21,52 +21,125 @@ Mutators take a reference to a list as first arg.
 */
 
 #include "word_count.h"
+#include <stdlib.h>
+#include <string.h>
 
 /* Basic utilities */
 
-char *new_string(char *str) {
-  char *new_str = (char *) malloc(strlen(str) + 1);
+char* new_string(char* str) {
+  char* new_str = (char*)malloc(strlen(str) + 1);
   if (new_str == NULL) {
     return NULL;
   }
   return strcpy(new_str, str);
 }
 
-int init_words(WordCount **wclist) {
+int init_words(WordCount** wclist) {
   /* Initialize word count.
      Returns 0 if no errors are encountered
      in the body of this function; 1 otherwise.
   */
+  if (!wclist) {
+    return 1;
+  }
   *wclist = NULL;
   return 0;
 }
 
-ssize_t len_words(WordCount *wchead) {
+ssize_t len_words(WordCount* wchead) {
   /* Return -1 if any errors are
      encountered in the body of
      this function.
   */
-    size_t len = 0;
-    return len;
+  size_t len = 0;
+  if (!wchead) {
+    return -1;
+  }
+  WordCount* temp = wchead;
+  while (temp) {
+    len++;
+    if (!temp->next) {
+      break;
+    }
+    temp = temp->next;
+  }
+  return len;
 }
 
-WordCount *find_word(WordCount *wchead, char *word) {
+WordCount* find_word(WordCount* wchead, char* word) {
   /* Return count for word, if it exists */
-  WordCount *wc = NULL;
+  WordCount* wc = NULL;
+  if (!wchead) {
+    return NULL;
+  }
+  WordCount* temp = wchead;
+
+  while (temp) {
+    if (strcmp(word, temp->word)) {
+      wc = temp;
+      break;
+    }
+    if (!temp->next) {
+      break;
+    }
+    temp = temp->next;
+  }
+
   return wc;
 }
 
-int add_word(WordCount **wclist, char *word) {
+int add_word(WordCount** wclist, char* word) {
   /* If word is present in word_counts list, increment the count.
      Otherwise insert with count 1.
      Returns 0 if no errors are encountered in the body of this function; 1 otherwise.
   */
- return 0;
+  if (!*wclist) {
+    *wclist = malloc(sizeof(WordCount));
+    if (*wclist == NULL) {
+      return 1;
+    }
+    (*wclist)->word = malloc(64 * sizeof(char));
+    if ((*wclist)->word == NULL) {
+      return 1;
+    }
+    strcpy((*wclist)->word, word);
+    (*wclist)->count = 1;
+    (*wclist)->next = NULL;
+    return 0;
+  }
+
+  WordCount* first = *wclist;
+  while (first) {
+    if (strcmp(first->word, word) == 0) {
+      first->count++;
+      return 0;
+    }
+    if (!first->next) {
+      break;
+    }
+    first = first->next;
+  }
+
+  WordCount* last = malloc(sizeof(WordCount));
+  if (last == NULL) {
+    // allocate error
+    return 1;
+  }
+  last->count = 1;
+  last->word = malloc(64 * sizeof(char));
+  if (last->word == NULL) {
+    return 1;
+  }
+  strcpy(last->word, word);
+  last->next = NULL;
+  first->next = last;
+
+  return 0;
 }
 
-void fprint_words(WordCount *wchead, FILE *ofile) {
+void fprint_words(WordCount* wchead, FILE* ofile) {
   /* print word counts to a file */
-  WordCount *wc;
+  WordCount* wc;
   for (wc = wchead; wc; wc = wc->next) {
     fprintf(ofile, "%i\t%s\n", wc->count, wc->word);
   }
